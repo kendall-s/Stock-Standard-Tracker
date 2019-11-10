@@ -6,8 +6,8 @@ import pandas as pd
 
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QGridLayout, QApplication, QLabel, QPushButton, QLineEdit,
-                             QListWidget, QAction, QFileDialog, QMessageBox)
-
+                             QListWidget, QAction, QFileDialog, QMessageBox, QTabWidget, QFrame)
+from SST_New_Details import newDetails
 
 class newEntry(QMainWindow):
 
@@ -49,7 +49,7 @@ class newEntry(QMainWindow):
         grid_layout = QGridLayout()
         grid_layout.setSpacing(10)
 
-        self.setGeometry(0, 0, 400, 300)
+        self.setGeometry(0, 0, 480, 150)
         qtRectangle = self.frameGeometry()
         screen = QApplication.desktop().screenNumber(QApplication.desktop().cursor().pos())
         centerPoint = QApplication.desktop().screenGeometry(screen).center()
@@ -68,12 +68,18 @@ class newEntry(QMainWindow):
         qc_table_load = QPushButton('Load')
         qc_table_load.clicked.connect(self.load_qc_table)
 
+        linesep1 = QFrame()
+        linesep1.setFrameShape(QFrame.HLine)
+        linesep1.setFrameShadow(QFrame.Sunken)
 
-        grid_layout.addWidget(load_qc_table_label, 0, 0, 1, 2)
-        grid_layout.addWidget(self.qc_table_path_field, 1, 0)
-        grid_layout.addWidget(qc_table_browse, 1, 1)
+        grid_layout.addWidget(load_qc_table_label, 0, 0, 1, 3)
+        grid_layout.addWidget(self.qc_table_path_field, 1, 0, 1, 2)
+        grid_layout.addWidget(qc_table_browse, 1, 2)
 
-        grid_layout.addWidget(qc_table_load, 2, 0, 1, 2)
+        grid_layout.addWidget(linesep1, 2, 0, 1, 3)
+
+        grid_layout.addWidget(qc_table_load, 3, 1, 1, 1)
+
 
         self.centralWidget().setLayout(grid_layout)
 
@@ -86,14 +92,22 @@ class newEntry(QMainWindow):
             self.qc_table_path_field.setText(dia[0])
 
     def load_qc_table(self):
-        with open(self.qc_table_path_field.text(), 'r') as file:
-            csv_read = csv.reader(file)
+        if os.path.isfile(self.qc_table_path_field.text()):
+            with open(self.qc_table_path_field.text(), 'r') as file:
+                csv_read = csv.reader(file)
+                data = [x for x in csv_read]
 
-            sample_ids = [x[4] for x in csv_read]
-            peak_number = [x[5] for x in csv_read]
-            analyte = [x[6] for x in csv_read]
-            peak_height = [x[7] for x in csv_read]
-            concentration = [x[8] for x in csv_read]
+            sample_ids = [x[4] for x in data[1:]]
+            peak_number = [x[5] for x in data[1:]]
+            analyte = [x[6] for x in data[1:]]
+            peak_height = [x[7] for x in data[1:]]
+            concentration = [x[8] for x in data[1:]]
 
-            data_df = pd.DataFrame((sample_ids, peak_number, analyte, peak_height, concentration),
+            data_df = pd.DataFrame(list(zip(sample_ids, peak_number, analyte, peak_height, concentration)),
                                    columns=['SampleIDs', 'PeakNumber', 'Analyte', 'PeakHeight', 'Concentration'])
+
+            nutrients_ran = set(analyte)
+
+            self.new_details = newDetails(nutrients_ran, data_df)
+
+
