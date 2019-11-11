@@ -1,11 +1,13 @@
 import sqlite3
 import sys
 import os
+import pandas as pd
 
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QGridLayout, QApplication, QLabel, QPushButton, QLineEdit,
-                             QListWidget, QAction, QFileDialog, QMessageBox)
+                             QListWidget, QAction, QFileDialog, QMessageBox, QFrame)
 from SST_New_Entry import newEntry
+from SST_Plots import plotterWindow
 
 class stocksTracker(QMainWindow):
 
@@ -47,7 +49,7 @@ class stocksTracker(QMainWindow):
         grid_layout = QGridLayout()
         grid_layout.setSpacing(10)
 
-        self.setGeometry(0, 0, 350, 600)
+        self.setGeometry(0, 0, 385, 750)
         qtRectangle = self.frameGeometry()
         screen = QApplication.desktop().screenNumber(QApplication.desktop().cursor().pos())
         centerPoint = QApplication.desktop().screenGeometry(screen).center()
@@ -56,10 +58,17 @@ class stocksTracker(QMainWindow):
 
         menu_bar = self.menuBar()
         file_menu = menu_bar.addMenu('File')
+        plot_menu = menu_bar.addMenu('Plots')
 
         create_new_db = QAction('Create Database', self)
         create_new_db.triggered.connect(self.create_database)
         file_menu.addAction(create_new_db)
+
+        self.create_plots = QAction('View Plots', self)
+        self.create_plots.triggered.connect(self.generate_plots)
+        plot_menu.addAction(self.create_plots)
+
+        self.create_plots.setDisabled(True)
 
         self.setWindowTitle('Nutrient Stock Standard')
 
@@ -69,6 +78,10 @@ class stocksTracker(QMainWindow):
 
         database_browse = QPushButton('Browse')
         database_browse.clicked.connect(self.path_browse)
+
+        linesep1 = QFrame()
+        linesep1.setFrameShape(QFrame.HLine)
+        linesep1.setFrameShadow(QFrame.Sunken)
 
         past_entries_label = QLabel('Previous Entries: ')
 
@@ -83,14 +96,16 @@ class stocksTracker(QMainWindow):
         self.new_entry.setDisabled(True)
 
         grid_layout.addWidget(database_path_label, 0, 0, 1, 2)
-        grid_layout.addWidget(self.database_path_field, 1, 0)
-        grid_layout.addWidget(database_browse, 1, 1)
+        grid_layout.addWidget(self.database_path_field, 1, 0, 1, 2)
+        grid_layout.addWidget(database_browse, 2, 1, 1, 1)
 
-        grid_layout.addWidget(past_entries_label, 2, 0, 1, 2)
-        grid_layout.addWidget(self.standard_entries, 3, 0, 6, 2)
+        grid_layout.addWidget(linesep1, 3, 0, 1, 2)
 
-        grid_layout.addWidget(self.view_entry, 10, 0, 1, 2)
-        grid_layout.addWidget(self.new_entry, 11, 0, 1, 2)
+        grid_layout.addWidget(past_entries_label, 4, 0, 1, 2)
+        grid_layout.addWidget(self.standard_entries, 5, 0, 6, 2)
+
+        grid_layout.addWidget(self.view_entry, 12, 0, 1, 2)
+        grid_layout.addWidget(self.new_entry, 13, 0, 1, 2)
 
         self.centralWidget().setLayout(grid_layout)
 
@@ -113,6 +128,8 @@ class stocksTracker(QMainWindow):
     def enter_new(self):
         self.new = newEntry()
 
+    def generate_plots(self):
+        self.plot = plotterWindow()
 
     def populate_list(self):
         db_path = self.database_path_field.text()
@@ -120,14 +137,24 @@ class stocksTracker(QMainWindow):
             conn = sqlite3.connect(db_path)
             c = conn.cursor()
 
-            c.execute('''SELECT date from stockInformation''')
+            stock_info = pd.read_sql_query('SELECT * from stockInformation ORDER BY nutrient', conn)
 
-            dat = list(c.fetchall())
+            if len(stock_info) > 0:
+                unique_stocks = stock_info.drop_duplicates(['date', 'lab'])
 
-            self.standard_entries.addItems(dat)
+                for entry in unique_stocks.iterrows():
+                    nuts_in_entry = []
+                    for all_entries in stock_info.iterrows():
+                        if entry[1]['date'] == all_entries[1]['date'] and entry[1]['lab'] == all_entries[1]['lab']:
+                            nuts_in_entry.append(all_entries[1]['nutrient'])
+
+                    entry_string = str(entry[1]['date']) + ': '
+                    nut_string = " | ".join(nuts_in_entry)
+                    self.standard_entries.addItem(entry_string + nut_string)
 
             self.view_entry.setEnabled(True)
             self.new_entry.setEnabled(True)
+            self.create_plots.setEnabled(True)
 
         except sqlite3.Error:
             pass
@@ -206,6 +233,8 @@ class stocksTracker(QMainWindow):
                 file.write(dia[0])
 
             self.populate_list()
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
