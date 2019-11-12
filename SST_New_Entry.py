@@ -108,6 +108,8 @@ class newEntry(QMainWindow):
 
             nutrients_ran = set(analyte)
 
-            self.new_details = newDetails(nutrients_ran, data_df)
+            file_name = os.path.basename(self.qc_table_path_field.text())
+
+            self.new_details = newDetails(nutrients_ran, data_df, file_name)
 
 

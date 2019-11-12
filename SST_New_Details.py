@@ -3,11 +3,11 @@ import os
 import sqlite3
 from time import sleep
 
-from PyQt5.QtGui import QIcon, QFont, QColor, QPalette, QDoubleValidator, QIntValidator
-from PyQt5.QtCore import QDate
+from PyQt5.QtGui import QIcon, QFont, QColor, QPalette, QDoubleValidator
+from PyQt5.QtCore import QDate, Qt
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QGridLayout, QApplication, QLabel, QPushButton, QLineEdit,
                              QComboBox, QFileDialog, QTabWidget, QDateEdit, QSpinBox, QTableWidgetItem,
-                             QTableWidget, QFrame, QMessageBox)
+                             QTableWidget, QFrame, QMessageBox, QCheckBox)
 
 cal_three_old_variants = ['Cal 3 old', 'Cal 3 Old', 'Cal 3Old', 'Cal 3old', 'Old Cal 3',
                           'old Cal 3', 'Cal3 Old', 'Cal3 old', 'comp Cal 3 Old', 'comp Cal3 Old', 'comp Cal 3Old',
@@ -20,7 +20,7 @@ fields_list = ['_mass_field', '_flask_field', '_volume_field', '_temp_field', '_
 
 class newDetails(QMainWindow):
 
-    def __init__(self, active_nutrients, data_df):
+    def __init__(self, active_nutrients, data_df, file_name):
         super().__init__()
         self.setWindowIcon(QIcon('assets/icon.svg'))
         self.central_widget = QWidget()
@@ -28,6 +28,7 @@ class newDetails(QMainWindow):
 
         self.active_nutrients = active_nutrients
         self.data_df = data_df
+        self.file_name = file_name
 
         self.init_ui()
 
@@ -88,8 +89,8 @@ class newDetails(QMainWindow):
                     padding: 3px;
                 } 
                 QFrame[middle=true] {
-                    background-color: #E1E1E1;
-                    border: 2px solid #929292;
+                    background-color: #F5F5F5;
+                    border: 2px solid #EAEAEA;
                     border-radius: 5px;
                     padding: 3px;
                 }
@@ -104,7 +105,11 @@ class newDetails(QMainWindow):
                     border: 2px solid #EAEAEA;
                     border-radius: 5px;
                     padding: 3px;
-                }   
+                }  
+                QLineEdit[pass=true] {
+                    background-color: #43CB5A;
+                    
+                } 
                 ''')
 
     def init_ui(self):
@@ -123,12 +128,6 @@ class newDetails(QMainWindow):
         self.setWindowTitle('Stock Standard Details')
 
         self.tabs = QTabWidget()
-
-        date_label = QLabel('Date Made:')
-        self.date_field = QDateEdit()
-
-        curr_date = QDate.currentDate()
-        self.date_field.setDate(curr_date)
 
         load_raps_label = QLabel('Load RAPS:')
         self.load_raps_path = QLineEdit()
@@ -163,11 +162,19 @@ class newDetails(QMainWindow):
             setattr(self, "{}".format(nut + '_right_frame'), QFrame())
             getattr(self, "{}".format(nut + '_right_frame')).setProperty('right', True)
 
-            setattr(self, "{}".format(nut + '_complete_label'), QLabel('Enter the following:'))
+            setattr(self, "{}".format(nut + '_ignore_check'), QCheckBox('Ignore analyte?'))
+
+            setattr(self, "{}".format(nut + '_date_label'), QLabel('Date Made:'))
+            setattr(self, "{}".format(nut + '_date_field'), QDateEdit())
+
+            curr_date = QDate.currentDate()
+            getattr(self, "{}".format(nut + '_date_field')).setDate(curr_date)
+
+            setattr(self, "{}".format(nut + '_complete_label'), QLabel('<b>Enter the following:<b>'))
 
             setattr(self, "{}".format(nut + '_dried_label'), QLabel('Time Dried (hours):'))
             setattr(self, "{}".format(nut + '_time_dried'), QSpinBox())
-            getattr(self, "{}".format(nut + '_time_dried')).setRange(0, 100)
+            getattr(self, "{}".format(nut + '_time_dried')).setRange(0, 200)
 
             setattr(self, "{}".format(nut + '_mass_label'), QLabel('Mass Weighed (g):'))
             setattr(self, "{}".format(nut + '_mass_field'), QLineEdit())
@@ -220,44 +227,50 @@ class newDetails(QMainWindow):
 
             getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_pass_frame')),
                                                                        7, 8, 3, 4)
+            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_ignore_check')), 1, 1, 1, 2, Qt.AlignCenter)
+
 
             getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_complete_label')),
-                                                                       1, 1)
+                                                                       2, 1)
+
+            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_date_label')), 3, 1)
+
+            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_date_field')), 3, 2)
 
             getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_dried_label')),
-                                                                       2, 1)
-            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_time_dried')),
-                                                                       2, 2)
-
-            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_mass_label')),
-                                                                       3, 1)
-            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_mass_field')),
-                                                                       3, 2)
-
-            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_flask_label')),
                                                                        4, 1)
-            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_flask_field')),
+            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_time_dried')),
                                                                        4, 2)
 
-            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(
-                getattr(self, "{}".format(nut + '_volume_label')), 5, 1)
-            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(
-                getattr(self, "{}".format(nut + '_volume_field')), 5, 2)
+            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_mass_label')),
+                                                                       5, 1)
+            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_mass_field')),
+                                                                       5, 2)
 
-            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_temp_label')),
+            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_flask_label')),
                                                                        6, 1)
-            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_temp_field')),
+            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_flask_field')),
                                                                        6, 2)
 
             getattr(self, "{}".format(nut + '_grid_layout')).addWidget(
-                getattr(self, "{}".format(nut + '_location_label')), 7, 1)
+                getattr(self, "{}".format(nut + '_volume_label')), 7, 1)
             getattr(self, "{}".format(nut + '_grid_layout')).addWidget(
-                getattr(self, "{}".format(nut + '_location_combo')), 7, 2)
+                getattr(self, "{}".format(nut + '_volume_field')), 7, 2)
+
+            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_temp_label')),
+                                                                       8, 1)
+            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_temp_field')),
+                                                                       8, 2)
+
+            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(
+                getattr(self, "{}".format(nut + '_location_label')), 9, 1)
+            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(
+                getattr(self, "{}".format(nut + '_location_combo')), 9, 2)
 
             getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_ident_label')),
-                                                                       8, 1)
+                                                                       10, 1)
             getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_ident_field')),
-                                                                       8, 2)
+                                                                       10, 2)
 
 
             getattr(self, "{}".format(nut + '_grid_layout')).addWidget(
@@ -282,9 +295,6 @@ class newDetails(QMainWindow):
             getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_diff_pct_label')), 7, 9)
             getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_diff_pct_field')), 8, 9)
 
-
-        grid_layout.addWidget(date_label, 0, 0)
-        grid_layout.addWidget(self.date_field, 0, 1)
 
         grid_layout.addWidget(self.tabs, 1, 0, 1, 4)
 
@@ -378,30 +388,31 @@ class newDetails(QMainWindow):
     def validate_fields(self):
         complete = True
         for nut in self.active_nutrients:
-            for field in fields_list:
-                if getattr(self, "{}".format(nut + field)).text() == '':
-                    messagebox = QMessageBox(QMessageBox.Information, 'Error',
-                                            'One of the required fields is empty',
-                                            buttons=QMessageBox.Ok, parent=self)
-                    messagebox.setFont(QFont('Segoe UI'))
-                    messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { width: 50px; font: 15px; }')
-                    messagebox.exec_()
-                    complete = False
-                    break
-
-                if field == '_mass_field' or field == 'volume_field' or field == 'temp_field':
-                    val = getattr(self, "{}".format(nut + field)).text()
-                    try:
-                        check = float(val)
-                    except ValueError:
+            if not getattr(self, "{}".format(nut + '_ignore_check')).isChecked():
+                for field in fields_list:
+                    if getattr(self, "{}".format(nut + field)).text() == '':
                         messagebox = QMessageBox(QMessageBox.Information, 'Error',
-                                                 'A value other than a number has been entered into: ' + field,
-                                                 buttons=QMessageBox.Ok, parent=self)
+                                                'One of the required fields is empty',
+                                                buttons=QMessageBox.Ok, parent=self)
                         messagebox.setFont(QFont('Segoe UI'))
                         messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { width: 50px; font: 15px; }')
                         messagebox.exec_()
                         complete = False
                         break
+
+                    if field == '_mass_field' or field == 'volume_field' or field == 'temp_field':
+                        val = getattr(self, "{}".format(nut + field)).text()
+                        try:
+                            check = float(val)
+                        except ValueError:
+                            messagebox = QMessageBox(QMessageBox.Information, 'Error',
+                                                     'A value other than a number has been entered into: ' + field,
+                                                     buttons=QMessageBox.Ok, parent=self)
+                            messagebox.setFont(QFont('Segoe UI'))
+                            messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { width: 50px; font: 15px; }')
+                            messagebox.exec_()
+                            complete = False
+                            break
             if not complete:
                 # Break because we have already found 1 missing field
                 break
@@ -420,48 +431,48 @@ class newDetails(QMainWindow):
         #complete = True
 
         if complete:
-
-            date = str(self.date_field.date().toPyDate())
-
-            print(date)
             for nut in self.active_nutrients:
-                time_dried = getattr(self, "{}".format(nut + '_time_dried')).value()
-                mass = getattr(self, "{}".format(nut + '_mass_field')).text()
-                flask = getattr(self, "{}".format(nut + '_flask_field')).text()
-                volume = getattr(self, "{}".format(nut + '_volume_field')).text()
-                temp = getattr(self, "{}".format(nut + '_temp_field')).text()
-                ident = getattr(self, "{}".format(nut + '_ident_field')).text()
 
-                lab = getattr(self, "{}".format(nut + '_location_combo')).currentText()
+                if not getattr(self, "{}".format(nut + '_ignore_check')).isChecked():
+                    date = str(getattr(self, "{}".format(nut + '_date_field')).date().toPyDate())
+                    time_dried = getattr(self, "{}".format(nut + '_time_dried')).value()
+                    mass = getattr(self, "{}".format(nut + '_mass_field')).text()
+                    flask = getattr(self, "{}".format(nut + '_flask_field')).text()
+                    volume = getattr(self, "{}".format(nut + '_volume_field')).text()
+                    temp = getattr(self, "{}".format(nut + '_temp_field')).text()
+                    ident = getattr(self, "{}".format(nut + '_ident_field')).text()
 
-                package = (date, time_dried, nut, mass, volume, flask, temp, lab, ident)
+                    lab = getattr(self, "{}".format(nut + '_location_combo')).currentText()
 
-                c.execute('INSERT or REPLACE into stockInformation VALUES (?,?,?,?,?,?,?,?,?)', package)
+                    package = (date, self.file_name, time_dried, nut, mass, volume, flask, temp, lab, ident)
 
-                for cal3 in ['_cal_three_old', '_cal_three_new']:
-                    concentrations = getattr(self, "{}".format(nut + cal3))['Concentration']
-                    peak_heights = getattr(self, "{}".format(nut + cal3))['PeakHeight']
-                    nutrient = getattr(self, "{}".format(nut + cal3))['Analyte']
-                    peak_number = getattr(self, "{}".format(nut + cal3))['PeakNumber']
-                    sample_id = getattr(self, "{}".format(nut + cal3))['SampleIDs']
+                    c.execute('INSERT or REPLACE into stockInformation VALUES (?,?,?,?,?,?,?,?,?,?)', package)
 
-                    date_list = [date for x in concentrations]
+                    for cal3 in ['_cal_three_old', '_cal_three_new']:
+                        concentrations = getattr(self, "{}".format(nut + cal3))['Concentration']
+                        peak_heights = getattr(self, "{}".format(nut + cal3))['PeakHeight']
+                        nutrient = getattr(self, "{}".format(nut + cal3))['Analyte']
+                        peak_number = getattr(self, "{}".format(nut + cal3))['PeakNumber']
+                        sample_id = getattr(self, "{}".format(nut + cal3))['SampleIDs']
 
-                    package = tuple(zip(date_list, nutrient, sample_id, peak_number, concentrations, peak_heights))
-                    print(package)
-                    c.executemany('INSERT or REPLACE into calThreeMeasurements VALUES (?,?,?,?,?,?)', package)
+                        date_list = [date for x in concentrations]
+                        file_list = [self.file_name for x in concentrations]
 
-                sample_id = getattr(self, "{}".format(nut + '_rmns'))['SampleIDs']
-                peak_number = getattr(self, "{}".format(nut + '_rmns'))['PeakNumber']
-                nutrient = getattr(self, "{}".format(nut + '_rmns'))['Analyte']
-                peak_height = getattr(self, "{}".format(nut + '_rmns'))['PeakHeight']
-                concentration = getattr(self, "{}".format(nut + '_rmns'))['Concentration']
-                date_list = [date for x in sample_id]
+                        package = tuple(zip(date_list, file_list, nutrient, sample_id, peak_number, concentrations, peak_heights))
+                        print(package)
+                        c.executemany('INSERT or REPLACE into calThreeMeasurements VALUES (?,?,?,?,?,?,?)', package)
 
-                package = tuple(zip(date_list, nutrient, sample_id, peak_number, concentration, peak_height))
+                    sample_id = getattr(self, "{}".format(nut + '_rmns'))['SampleIDs']
+                    peak_number = getattr(self, "{}".format(nut + '_rmns'))['PeakNumber']
+                    nutrient = getattr(self, "{}".format(nut + '_rmns'))['Analyte']
+                    peak_height = getattr(self, "{}".format(nut + '_rmns'))['PeakHeight']
+                    concentration = getattr(self, "{}".format(nut + '_rmns'))['Concentration']
+                    date_list = [date for x in sample_id]
+                    file_list = [self.file_name for x in sample_id]
 
-                c.executemany('INSERT or REPLACE into rmnsMeasurements VALUES (?,?,?,?,?,?)', package)
+                    package = tuple(zip(date_list, file_list, nutrient, sample_id, peak_number, concentration, peak_height))
 
+                    c.executemany('INSERT or REPLACE into rmnsMeasurements VALUES (?,?,?,?,?,?,?)', package)
 
             conn.commit()
             conn.close()

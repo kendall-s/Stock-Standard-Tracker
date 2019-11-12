@@ -1,6 +1,7 @@
 import sqlite3
 import sys
 import os
+import pandas
 import pandas as pd
 
 from PyQt5.QtGui import QIcon, QFont
@@ -102,10 +103,10 @@ class stocksTracker(QMainWindow):
         grid_layout.addWidget(linesep1, 3, 0, 1, 2)
 
         grid_layout.addWidget(past_entries_label, 4, 0, 1, 2)
-        grid_layout.addWidget(self.standard_entries, 5, 0, 6, 2)
+        grid_layout.addWidget(self.standard_entries, 5, 0, 8, 2)
 
-        grid_layout.addWidget(self.view_entry, 12, 0, 1, 2)
-        grid_layout.addWidget(self.new_entry, 13, 0, 1, 2)
+        grid_layout.addWidget(self.view_entry, 13, 0, 1, 2)
+        grid_layout.addWidget(self.new_entry, 14, 0, 1, 2)
 
         self.centralWidget().setLayout(grid_layout)
 
@@ -139,16 +140,18 @@ class stocksTracker(QMainWindow):
 
             stock_info = pd.read_sql_query('SELECT * from stockInformation ORDER BY nutrient', conn)
 
+            print(stock_info)
+
             if len(stock_info) > 0:
-                unique_stocks = stock_info.drop_duplicates(['date', 'lab'])
+                unique_stocks = stock_info.drop_duplicates(['resultsFile', 'lab'])
 
                 for entry in unique_stocks.iterrows():
                     nuts_in_entry = []
                     for all_entries in stock_info.iterrows():
-                        if entry[1]['date'] == all_entries[1]['date'] and entry[1]['lab'] == all_entries[1]['lab']:
+                        if entry[1]['resultsFile'] == all_entries[1]['resultsFile'] and entry[1]['lab'] == all_entries[1]['lab']:
                             nuts_in_entry.append(all_entries[1]['nutrient'])
 
-                    entry_string = str(entry[1]['date']) + ': '
+                    entry_string = str(entry[1]['resultsFile']) + ': \n'
                     nut_string = " | ".join(nuts_in_entry)
                     self.standard_entries.addItem(entry_string + nut_string)
 
@@ -156,10 +159,12 @@ class stocksTracker(QMainWindow):
             self.new_entry.setEnabled(True)
             self.create_plots.setEnabled(True)
 
+            c.close()
+
         except sqlite3.Error:
             pass
-
-
+        except pandas.io.sql.DatabaseError:
+            pass
 
     def path_browse(self):
         """
@@ -171,7 +176,7 @@ class stocksTracker(QMainWindow):
             self.database_path_field.setText(dia[0])
             appdata_path = os.getenv('LOCALAPPDATA')
             with open(appdata_path + '/' + 'Stocks Tracker' + '/' + 'path_memory.txt', 'w+') as file:
-                file.write(dia[0])
+                file.write(dia[0] + '.db')
 
             self.populate_list()
 
@@ -190,6 +195,7 @@ class stocksTracker(QMainWindow):
 
             c.execute('''CREATE TABLE IF NOT EXISTS stockInformation
                       (date TEXT,
+                      resultsFile TEXT,
                       timeDried INTEGER,
                       nutrient TEXT,
                       mass FLOAT,
@@ -202,6 +208,7 @@ class stocksTracker(QMainWindow):
 
             c.execute('''CREATE TABLE IF NOT EXISTS calThreeMeasurements
                       (date TEXT,
+                      resultsFile TEXT,
                       nutrient TEXT, 
                       id TEXT,
                       peakNumber INTEGER,
@@ -211,6 +218,7 @@ class stocksTracker(QMainWindow):
 
             c.execute('''CREATE TABLE IF NOT EXISTS rmnsMeasurements 
                     (date TEXT,
+                    resultsFile TEXT,
                     nutrient TEXT,
                     id TEXT,
                     peakNumber INTEGER,
@@ -227,13 +235,12 @@ class stocksTracker(QMainWindow):
             messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { font: 15px; }')
             messagebox.exec_()
 
-            self.database_path_field.setText(dia[0])
+            self.database_path_field.setText(dia[0] + dia[1])
             appdata_path = os.getenv('LOCALAPPDATA')
             with open(appdata_path + '/' + 'Stocks Tracker' + '/' + 'path_memory.txt', 'w+') as file:
-                file.write(dia[0])
+                file.write(dia[0] + dia[1])
 
             self.populate_list()
-
 
 
 if __name__ == '__main__':

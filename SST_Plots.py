@@ -50,7 +50,7 @@ class plotterWindow(QMainWindow):
     def init_ui(self):
         self.setFont(QFont('Segoe UI'))
 
-        self.setGeometry(0, 0, 780, 820)
+        self.setGeometry(0, 0, 950, 800)
         qtRectangle = self.frameGeometry()
         screen = QApplication.desktop().screenNumber(QApplication.desktop().cursor().pos())
         centerPoint = QApplication.desktop().screenGeometry(screen).center()
@@ -114,13 +114,16 @@ class plotterWindow(QMainWindow):
         self.canvas.setParent(self)
 
         self.main_plot = self.figure.add_subplot(111)
+        self.main_plot.grid(alpha=0.7)
+        self.main_plot.set_xlabel('Date')
+        self.main_plot.set_ylabel('Values')
 
         for x in self.main_plot.get_xticklabels():
             x.set_fontsize(12)
         for y in self.main_plot.get_yticklabels():
             y.set_fontsize(12)
 
-        self.grid_layout.addWidget(self.canvas, 0, 1)
+        self.grid_layout.addWidget(self.canvas, 0, 1, 1, 10)
         self.grid_layout.addWidget(self.qvbox_frame_holder, 0, 0)
 
         self.qvbox_layout.addWidget(nutrient_label)
@@ -213,8 +216,6 @@ class plotterWindow(QMainWindow):
             self.plot_temp(selected_pack, c)
         if self.time_dried_check.isChecked():
             self.plot_time(selected_pack, c)
-        if self.ident_check.isChecked():
-            pass
         if self.error_percent_check.isChecked():
             self.plot_error(selected_pack, c)
         if self.cal3_new_mean_conc_check.isChecked():
@@ -226,9 +227,13 @@ class plotterWindow(QMainWindow):
         if self.cal3_old_mean_height_check.isChecked():
             self.plot_cal_three(selected_pack, c, 'Old', 'Height')
 
-        self.main_plot.legend()
         self.canvas.draw()
 
+        if self.ident_check.isChecked():
+            self.plot_ident(selected_pack, c)
+
+        self.main_plot.legend()
+        self.canvas.draw()
         
     def plot_weight(self, selected_pack, c):
         dates = []
@@ -241,7 +246,7 @@ class plotterWindow(QMainWindow):
                 dates.append(data[0][0])
                 mass.append(float(data[0][1]))
 
-        self.main_plot.plot(dates, mass, marker='o', lw=0.25, linestyle='--', color='#423D6B', label='Mass')
+        self.main_plot.plot(dates, mass, marker='o', lw=0.25, linestyle='--', color='#423D6B', label='Mass (g)')
         self.canvas.draw()
 
     def plot_temp(self, selected_pack, c):
@@ -255,7 +260,7 @@ class plotterWindow(QMainWindow):
                 dates.append(data[0][0])
                 temp.append(float(data[0][1]))
 
-        self.main_plot.plot(dates, temp, marker='o', lw=0.25, linestyle='--', color='#476DA5', label='Temp')
+        self.main_plot.plot(dates, temp, marker='o', lw=0.25, linestyle='--', color='#476DA5', label='Temp (°C)')
         self.canvas.draw()
 
     def plot_time(self, selected_pack, c):
@@ -269,21 +274,24 @@ class plotterWindow(QMainWindow):
                 dates.append(data[0][0])
                 time.append(int(data[0][1]))
 
-        self.main_plot.plot(dates, time, marker='o', lw=0.25, linestyle='--', color='#D2682B', label='Time Dried')
+        self.main_plot.plot(dates, time, marker='o', lw=0.25, linestyle='--', color='#D2682B', label='Time Dried (hrs)')
         self.canvas.draw()
 
     def plot_ident(self, selected_pack, c):
         dates = []
         ident = []
         for selection in selected_pack:
-            c.execute('SELECT date, timeDried from stockInformation WHERE date=? AND lab=? AND nutrient=?', selection)
+            c.execute('SELECT date, ident from stockInformation WHERE date=? AND lab=? AND nutrient=?', selection)
             data = c.fetchall()
             print(data)
             if len(data) > 0:
                 ident.append(data[0][0])
                 dates.append(data[0][1])
+            ymin, ymax = self.main_plot.get_ylim()
+            print(ymin, ymax)
+            ymid = ((ymax - ymin) * 0.2) + ymin
+            self.main_plot.annotate(str(data[0][1]), xy=(data[0][0], ymid), xycoords='data')
 
-        self.main_plot.plot(dates, ident, marker='o', lw=0.25, linestyle='--', color='#476DA5', label='Ident')
         self.canvas.draw()
 
     def plot_error(self, selected_pack, c):
@@ -310,7 +318,7 @@ class plotterWindow(QMainWindow):
 
             old_cal_mean = statistics.mean(old_cal_concs)
             new_cal_mean = statistics.mean(new_cal_concs)
-            error_dif = abs(old_cal_mean - new_cal_mean)
+            error_dif = old_cal_mean - new_cal_mean
             error_percent = (error_dif/old_cal_mean) * 100
 
             dates.append(data[0][0])
