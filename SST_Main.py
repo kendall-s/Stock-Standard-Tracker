@@ -10,11 +10,13 @@ from PyQt5.QtWidgets import (QMainWindow, QWidget, QGridLayout, QApplication, QL
 from SST_New_Entry import newEntry
 from SST_Plots import plotterWindow
 
+import icons
+
 class stocksTracker(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowIcon(QIcon('assets/icon.svg'))
+        self.setWindowIcon(QIcon(':/assets/stockflask.svg'))
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
@@ -71,7 +73,7 @@ class stocksTracker(QMainWindow):
 
         self.create_plots.setDisabled(True)
 
-        self.setWindowTitle('Nutrient Stock Standard')
+        self.setWindowTitle('Nutrient Stock Standard Tracker')
 
         database_path_label = QLabel('Path to Database File:')
 
@@ -138,7 +140,7 @@ class stocksTracker(QMainWindow):
             conn = sqlite3.connect(db_path)
             c = conn.cursor()
 
-            stock_info = pd.read_sql_query('SELECT * from stockInformation ORDER BY nutrient', conn)
+            stock_info = pd.read_sql_query('SELECT * from stockInformation ORDER BY date', conn)
 
             print(stock_info)
 
@@ -147,12 +149,13 @@ class stocksTracker(QMainWindow):
 
                 for entry in unique_stocks.iterrows():
                     nuts_in_entry = []
+                    #nuts_in_entry.append(entry[1]['date'])
                     for all_entries in stock_info.iterrows():
                         if entry[1]['resultsFile'] == all_entries[1]['resultsFile'] and entry[1]['lab'] == all_entries[1]['lab']:
-                            nuts_in_entry.append(all_entries[1]['nutrient'])
+                            nuts_in_entry.append("    ∟ " + all_entries[1]['date'] + ': ' + all_entries[1]['nutrient'] + '\n')
 
                     entry_string = str(entry[1]['resultsFile']) + ': \n'
-                    nut_string = " | ".join(nuts_in_entry)
+                    nut_string = "".join(nuts_in_entry)
                     self.standard_entries.addItem(entry_string + nut_string)
 
             self.view_entry.setEnabled(True)
@@ -173,10 +176,11 @@ class stocksTracker(QMainWindow):
         """
         dia = QFileDialog.getOpenFileName(self, 'Open Database', 'C:/', 'Database (*.db)')
         if dia[0]:
+            self.standard_entries.clear()
             self.database_path_field.setText(dia[0])
             appdata_path = os.getenv('LOCALAPPDATA')
             with open(appdata_path + '/' + 'Stocks Tracker' + '/' + 'path_memory.txt', 'w+') as file:
-                file.write(dia[0] + '.db')
+                file.write(dia[0])
 
             self.populate_list()
 
@@ -225,6 +229,17 @@ class stocksTracker(QMainWindow):
                     concentration FLOAT,
                     peakHeight FLOAT,
                     UNIQUE(date, nutrient, peakNumber))''')
+            c.execute('''CREATE TABLE IF NOT EXISTS rmnsValues 
+                    (rmnsLot TEXT,
+                    nitrateConc FLOAT,
+                    nitrateError FLOAT,
+                    phosphateConc FLOAT,
+                    phosphateError FLOAT,
+                    silicateConc FLOAT,
+                    silicateError FLOAT,
+                    nitriteConc FLOAT,
+                    nitriteError FLOAT,
+                    UNIQUE(rmnsLot))''')
 
             c.close()
 

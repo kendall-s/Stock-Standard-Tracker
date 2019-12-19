@@ -9,11 +9,13 @@ from PyQt5.QtWidgets import (QMainWindow, QWidget, QGridLayout, QApplication, QL
                              QListWidget, QAction, QFileDialog, QMessageBox, QTabWidget, QFrame)
 from SST_New_Details import newDetails
 
+import icons
+
 class newEntry(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowIcon(QIcon('assets/icon.svg'))
+        self.setWindowIcon(QIcon(':/assets/stockflask.svg'))
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 

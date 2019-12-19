@@ -8,6 +8,7 @@ from PyQt5.QtCore import QDate, Qt
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QGridLayout, QApplication, QLabel, QPushButton, QLineEdit,
                              QComboBox, QFileDialog, QTabWidget, QDateEdit, QSpinBox, QTableWidgetItem,
                              QTableWidget, QFrame, QMessageBox, QCheckBox)
+import icons
 
 cal_three_old_variants = ['Cal 3 old', 'Cal 3 Old', 'Cal 3Old', 'Cal 3old', 'Old Cal 3',
                           'old Cal 3', 'Cal3 Old', 'Cal3 old', 'comp Cal 3 Old', 'comp Cal3 Old', 'comp Cal 3Old',
@@ -22,7 +23,7 @@ class newDetails(QMainWindow):
 
     def __init__(self, active_nutrients, data_df, file_name):
         super().__init__()
-        self.setWindowIcon(QIcon('assets/icon.svg'))
+        self.setWindowIcon(QIcon(':/assets/stockflask.svg'))
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
@@ -370,19 +371,19 @@ class newDetails(QMainWindow):
             perc = getattr(self, "{}".format(nut + '_percentage'))
             if getattr(self, "{}".format(nut + '_error')) > 0.02 or (getattr(self, "{}".format(nut + '_error')) > 0.2 and nut == 'Silicate'):
                 if nut != 'Ammonia':
-                    if perc < 1:
+                    if perc < 0.5:
                         pass
-                    elif perc > 1 and perc < 2:
+                    elif perc > 0.5 and perc < 1:
                         getattr(self, "{}".format(nut + '_pass_frame')).setStyleSheet('''QFrame[pass=true]{background-color: #E4A415;}''')
-                    elif perc > 2:
+                    elif perc > 1:
                         getattr(self, "{}".format(nut + '_pass_frame')).setStyleSheet('''QFrame[pass=true]{background-color: #CB4F46;}''')
 
                 if nut == 'Ammonia':
-                    if perc < 2:
+                    if perc < 1.5:
                         pass
-                    elif perc > 2 and perc < 3:
+                    elif perc > 1.5 and perc < 2.5:
                         getattr(self, "{}".format(nut + '_pass_frame')).setStyleSheet('''QFrame[pass=true]{background-color: #E4A415;}''')
-                    elif perc > 3:
+                    elif perc > 2.5:
                         getattr(self, "{}".format(nut + '_pass_frame')).setStyleSheet('''QFrame[pass=true]{background-color: #CB4F46;}''')
 
     def validate_fields(self):

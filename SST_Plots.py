@@ -10,6 +10,8 @@ import os
 import sqlite3
 import statistics
 
+import icons
+
 class plotterWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -17,7 +19,7 @@ class plotterWindow(QMainWindow):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
-        self.setWindowIcon(QIcon('assets/icon.svg'))
+        self.setWindowIcon(QIcon(':/assets/stockflask.svg'))
 
         self.init_ui()
 
@@ -246,7 +248,7 @@ class plotterWindow(QMainWindow):
                 dates.append(data[0][0])
                 mass.append(float(data[0][1]))
 
-        self.main_plot.plot(dates, mass, marker='o', lw=0.25, linestyle='--', color='#423D6B', label='Mass (g)')
+        self.main_plot.plot(dates, mass, marker='o', lw=0.5, linestyle='--', color='#423D6B', label='Mass (g)')
         self.canvas.draw()
 
     def plot_temp(self, selected_pack, c):
@@ -260,7 +262,7 @@ class plotterWindow(QMainWindow):
                 dates.append(data[0][0])
                 temp.append(float(data[0][1]))
 
-        self.main_plot.plot(dates, temp, marker='o', lw=0.25, linestyle='--', color='#476DA5', label='Temp (°C)')
+        self.main_plot.plot(dates, temp, marker='o', lw=0.5, linestyle='--', color='#476DA5', label='Temp (°C)')
         self.canvas.draw()
 
     def plot_time(self, selected_pack, c):
@@ -274,7 +276,7 @@ class plotterWindow(QMainWindow):
                 dates.append(data[0][0])
                 time.append(int(data[0][1]))
 
-        self.main_plot.plot(dates, time, marker='o', lw=0.25, linestyle='--', color='#D2682B', label='Time Dried (hrs)')
+        self.main_plot.plot(dates, time, marker='o', lw=0.5, linestyle='--', color='#D2682B', label='Time Dried (hrs)')
         self.canvas.draw()
 
     def plot_ident(self, selected_pack, c):
