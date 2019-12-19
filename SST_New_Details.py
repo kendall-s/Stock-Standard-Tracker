@@ -84,26 +84,26 @@ class newDetails(QMainWindow):
                     font: 14px;
                 }
                 QFrame[left=true] {
-                    background-color: #F4F4F4;
-                    border: 2px solid #EAEAEA;
+                    background-color: #FBFBFB;
+                    border: 1px solid #EAEAEA;
                     border-radius: 5px;
                     padding: 3px;
                 } 
                 QFrame[middle=true] {
-                    background-color: #F5F5F5;
-                    border: 2px solid #EAEAEA;
+                    background-color: #FBFBFB;
+                    border: 1px solid #EAEAEA;
                     border-radius: 5px;
                     padding: 3px;
                 }
                 QFrame[right=true] {
-                    background-color: #F4F4F4;
-                    border: 2px solid #EAEAEA;
+                    background-color: #FBFBFB;
+                    border: 1px solid #EAEAEA;
                     border-radius: 5px;
                     padding: 3px;
                 }     
                 QFrame[pass=true] {
                     background-color: #43CB5A;
-                    border: 2px solid #EAEAEA;
+                    border: 1px solid #EAEAEA;
                     border-radius: 5px;
                     padding: 3px;
                 }  
@@ -227,7 +227,7 @@ class newDetails(QMainWindow):
                                                                        0, 8, 13, 4)
 
             getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_pass_frame')),
-                                                                       7, 8, 3, 4)
+                                                                       8, 8, 3, 4)
             getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_ignore_check')), 1, 1, 1, 2, Qt.AlignCenter)
 
 
@@ -293,8 +293,8 @@ class newDetails(QMainWindow):
             getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_error_label')), 5, 9)
             getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_error_field')), 6, 9)
 
-            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_diff_pct_label')), 7, 9)
-            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_diff_pct_field')), 8, 9)
+            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_diff_pct_label')), 8, 9)
+            getattr(self, "{}".format(nut + '_grid_layout')).addWidget(getattr(self, "{}".format(nut + '_diff_pct_field')), 9, 9)
 
 
         grid_layout.addWidget(self.tabs, 1, 0, 1, 4)

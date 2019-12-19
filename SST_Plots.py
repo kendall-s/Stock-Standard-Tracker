@@ -2,6 +2,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from pylab import get_current_fig_manager
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QAction, QVBoxLayout, QFileDialog, QApplication, QComboBox,
                              QGridLayout, QLabel, QListWidget, QCheckBox, QPushButton, QAbstractItemView, QFrame)
 from PyQt5.QtGui import QFont, QIcon, QImage
@@ -11,6 +12,7 @@ import sqlite3
 import statistics
 
 import icons
+mpl.rc('font', family='Segoe UI Symbol')
 
 class plotterWindow(QMainWindow):
     def __init__(self):
@@ -116,14 +118,6 @@ class plotterWindow(QMainWindow):
         self.canvas.setParent(self)
 
         self.main_plot = self.figure.add_subplot(111)
-        self.main_plot.grid(alpha=0.7)
-        self.main_plot.set_xlabel('Date')
-        self.main_plot.set_ylabel('Values')
-
-        for x in self.main_plot.get_xticklabels():
-            x.set_fontsize(12)
-        for y in self.main_plot.get_yticklabels():
-            y.set_fontsize(12)
 
         self.grid_layout.addWidget(self.canvas, 0, 1, 1, 10)
         self.grid_layout.addWidget(self.qvbox_frame_holder, 0, 0)
@@ -193,6 +187,19 @@ class plotterWindow(QMainWindow):
             print(event.xdata)
 
     def apply(self):
+
+        self.main_plot.clear()
+
+        self.main_plot.grid(alpha=0.7)
+        self.main_plot.set_xlabel('Date', fontsize=14)
+        self.main_plot.set_ylabel('Values', fontsize=14)
+        self.main_plot.set_title(str(self.nutrient_combo.currentText()) + ' Stock Trends', fontsize=16)
+
+        for x in self.main_plot.get_xticklabels():
+            x.set_fontsize(11)
+        for y in self.main_plot.get_yticklabels():
+            y.set_fontsize(11)
+
         appdata_path = os.getenv('LOCALAPPDATA')
         with open(appdata_path + '/' + 'Stocks Tracker' + '/' + 'path_memory.txt', 'r') as file:
             reader = file.read()
@@ -261,6 +268,7 @@ class plotterWindow(QMainWindow):
             if len(data) > 0:
                 dates.append(data[0][0])
                 temp.append(float(data[0][1]))
+        print(temp)
 
         self.main_plot.plot(dates, temp, marker='o', lw=0.5, linestyle='--', color='#476DA5', label='Temp (°C)')
         self.canvas.draw()
