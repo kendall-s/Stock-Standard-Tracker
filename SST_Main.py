@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (QMainWindow, QWidget, QGridLayout, QApplication, QL
                              QListWidget, QAction, QFileDialog, QMessageBox, QFrame)
 from SST_New_Entry import newEntry
 from SST_Plots import plotterWindow
+from SST_View_Details import viewDetails
 
 import icons
 
@@ -91,8 +92,7 @@ class stocksTracker(QMainWindow):
         self.standard_entries = QListWidget()
 
         self.view_entry = QPushButton('View')
-
-        self.view_entry.setDisabled(True)
+        self.view_entry.clicked.connect(self.view_existing)
 
         self.new_entry = QPushButton('New')
         self.new_entry.clicked.connect(self.enter_new)
@@ -127,6 +127,25 @@ class stocksTracker(QMainWindow):
                 pass
 
         self.show()
+
+    def view_existing(self):
+        if self.standard_entries.currentItem():
+            current_selection = self.standard_entries.currentItem().text()
+            selected_split = current_selection.split(':')
+            selected_file = selected_split[0]
+
+            db_path = self.database_path_field.text()
+            conn = sqlite3.connect(db_path)
+            c = conn.cursor()
+
+            df = pd.read_sql_query('SELECT * from stockInformation', conn)
+            stocks_info = df.loc[df['resultsFile'] == selected_file]
+
+            df = pd.read_sql_query('SELECT * from calThreeMeasurements', conn)
+            cal_threes = df.loc[df['resultsFile'] == selected_file]
+
+            self.viewing = viewDetails(stocks_info, cal_threes)
+
 
     def enter_new(self):
         self.new = newEntry()
